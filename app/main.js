@@ -1,14 +1,15 @@
 const config = require('./config');
+const fetch = require('node-fetch');
+const fs = require('fs');
 const path = require('path');
+const registerDevice = require('./registerDevice');
 const url = require('url');
 const {app, BrowserWindow} = require('electron');
-const fs = require('fs');
-const isDev = true;
-const registerDevice = require('./registerDevice');
 
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is garbage collected.
+const isDev = process.platform==='darwin';
+
 let win;
+let device;
 
 const initializeApp = () => {
   let kiosk = isDev ? false : true;
@@ -32,20 +33,38 @@ const initializeApp = () => {
     slashes: true
   }));
 
-  let dsConfig = fs.readFileSync(config.dsConfigPath, 'utf8');
-  let device = JSON.parse(dsConfig);
-  if (!device.id) {
-    registerDevice(device)
-    .then(res => console.log(res));
+  let fileExists = fs.existsSync(config.savePath);
+  if (!fileExists) {
+    return registerDevice()
+    .then(res => {
+      device = res;
+      checkExistence();
+    });
+  } else {
+    device = fs.readFileSync(config.savePath, 'utf8');
+    device = JSON.parse(device);
+    console.log('Device has id: '+device.id);
+    return checkExistence();
   }
+};
 
-  runPlaylist();
+// add a way to re-register if device is removed from database
+const checkExistence = () => {
+  console.log(device);
+  fetch(device.serviceUrl+'/devices/'+device.id)
+  .then(res => res.json())
+  .then(json => {
+    device = Object.assign({}, device, json);
+    console.log(device);
+    runPlaylist();
+  })
+  .catch(err => console.log(err));
 };
 
 function runPlaylist () {
 
 
-  let uris = ['http://ica.se', 'http://coop.se', 'http://willys.se', 'http://www.nyhetsbolaget.se'];
+  let uris = ['https://www.youtube.com/tv#/watch/video/idle?v=Cimp-eTe3MU', 'http://ica.se', 'http://coop.se', 'http://willys.se', 'http://www.nyhetsbolaget.se'];
 
   const changeUrl = (index) => {
     win.loadURL(uris[index]);
