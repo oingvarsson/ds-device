@@ -34,13 +34,12 @@ const initializeApp = () => {
 
   let dsConfig = fs.readFileSync(config.dsConfigPath, 'utf8');
   let device = JSON.parse(dsConfig);
-  if (!device.id)
-    registerDevice(device);
+  if (!device.id) {
+    registerDevice(device)
+    .then(res => console.log(res));
+  }
 
-  console.log(device);
-
-
-  //runPlaylist();
+  runPlaylist();
 };
 
 function runPlaylist () {
