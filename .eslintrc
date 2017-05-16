@@ -1,0 +1,24 @@
+{
+    "env": {
+        "browser": true,
+        "mocha": true,
+        "node": true
+    },
+    "extends": ["eslint:recommended"],
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module"
+    },
+    "root": true,
+    "rules": {
+        "semi": [1, "always"],
+        "indent": [1, 2],
+        "no-console": 0,
+        "no-unused-vars": 1,
+        "no-var": "error",
+        "react/prop-types": 0
+    },
+    "globals": {
+        "Promise": true
+    }
+}

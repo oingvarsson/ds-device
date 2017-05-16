@@ -1,0 +1,10 @@
+Rad1
+Rad2
+Rad3
+Rad4
+rotate=0
+Rad5
+Rad6
+rotate=fel
+Rad7
+rotate=merfel

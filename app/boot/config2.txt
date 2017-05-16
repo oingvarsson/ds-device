@@ -1,0 +1,6 @@
+Rad1
+Rad2
+Rad3
+Rad4
+Rad5
+rotate=Mon May 15 2017 14:50:36 GMT+0200 (CEST)
