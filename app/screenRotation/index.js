@@ -5,7 +5,7 @@ const updateConfig = require('../updateConfig');
 
 const set = newRotation => {
   get()
-  .then(rotation => rotation!==newRotation)
+  .then(rotation => parseInt(rotation)!==parseInt(newRotation))
   .then(shouldChange => shouldChange ? updateConfig('display_rotate=', newRotation) : null);
 };
 
