@@ -3,16 +3,15 @@ const fetch = require('node-fetch');
 const fs = require('fs');
 const path = require('path');
 const registerDevice = require('./registerDevice');
+const screenRotation = require('./screenRotation');
 const url = require('url');
 const {app, BrowserWindow} = require('electron');
-
-const isDev = process.platform==='darwin';
 
 let win;
 let device;
 
 const initializeApp = () => {
-  let kiosk = isDev ? false : true;
+  let kiosk = !config.isDev;
   let windowOptions = {
     kiosk: kiosk,
     webPreferences: {
@@ -20,7 +19,7 @@ const initializeApp = () => {
       nodeIntegrationInWorker: false
     }
   };
-  if (isDev) {
+  if (config.isDev) {
     windowOptions.height = 600;
     windowOptions.width = 900;
   }
