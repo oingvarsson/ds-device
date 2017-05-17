@@ -47,7 +47,7 @@ const initializeApp = () => {
   }
 };
 
-// add a way to re-register if device is removed from database
+// TODO: add a way to re-register if device is removed from database
 const checkExistence = () => {
   console.log(device);
   fetch(device.serviceUrl+'/devices/'+device.id)
@@ -55,6 +55,7 @@ const checkExistence = () => {
   .then(json => {
     device = Object.assign({}, device, json);
     console.log(device);
+    //TODO: set rotation
     runPlaylist();
   })
   .catch(err => console.log(err));
