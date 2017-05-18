@@ -7,6 +7,7 @@ const registerDevice = require('./registerDevice');
 const screenRotation = require('./screenRotation');
 const url = require('url');
 const {app, BrowserWindow} = require('electron');
+const heartbeat = require('./heartbeat');
 
 let win;
 let device;
@@ -63,7 +64,7 @@ const checkExistence = () => {
 
     if (device.rotation)
       screenRotation.set(device.rotation);
-
+    heartbeat(device);
     runPlaylist();
   })
   .catch(() => {
