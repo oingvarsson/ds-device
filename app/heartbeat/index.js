@@ -1,25 +1,22 @@
 const config = require('../config');
 const fetch = require('node-fetch');
-const moment = require('moment');
 const reboot = require('../reboot');
 
 let heartbeatInterval;
-let errorCount = 0;
+let errorCount = 1;
 
 module.exports = device => {
   clearInterval(heartbeatInterval);
   heartbeatInterval = setInterval(() => {
-    fetch(device.serviceUrl+'/heartbeat', {method: 'PUT', body: {id: device.id, currentTime: moment().format()}})
+    fetch(device.serviceUrl+'/heartbeat/'+device.id, {method: 'PUT'})
     .then(res => {
       if (res.status!==200) {
         throw new Error('Unable to contact service');
       }
       else {
         errorCount = 0;
-        res.json();
       }
     })
-    .then(json => console.log(json))
     .catch(() => {
       console.log('Unable to contact service. Attempt: '+errorCount);
       errorCount++;
