@@ -2,6 +2,7 @@ const config = require('./config');
 const fetch = require('node-fetch');
 const fs = require('fs');
 const path = require('path');
+const reboot = require('./reboot');
 const registerDevice = require('./registerDevice');
 const screenRotation = require('./screenRotation');
 const url = require('url');
@@ -9,6 +10,7 @@ const {app, BrowserWindow} = require('electron');
 
 let win;
 let device;
+let retry = 0;
 
 const initializeApp = () => {
   let kiosk = !config.isDev;
@@ -34,31 +36,47 @@ const initializeApp = () => {
 
   let fileExists = fs.existsSync(config.savePath);
   if (!fileExists) {
-    return registerDevice()
-    .then(res => {
-      device = res;
-      checkExistence();
-    });
+    register().then(() => checkExistence());
   } else {
     device = fs.readFileSync(config.savePath, 'utf8');
     device = JSON.parse(device);
     console.log('Device has id: '+device.id);
-    return checkExistence();
+    checkExistence();
   }
 };
 
-// TODO: add a way to re-register if device is removed from database
 const checkExistence = () => {
+  retry++;
+  if (retry>3) {
+    console.log('Unable to register with service');
+    if (!config.isDev)
+      return reboot();
+  }
   console.log(device);
   fetch(device.serviceUrl+'/devices/'+device.id)
   .then(res => res.json())
   .then(json => {
+    if (!json.id)
+      return register().then(() => checkExistence());
     device = Object.assign({}, device, json);
     console.log(device);
-    //TODO: set rotation
+
+    if (device.rotation)
+      screenRotation.set(device.rotation);
+
     runPlaylist();
   })
-  .catch(err => console.log(err));
+  .catch(() => {
+    console.log('Unable to connect to service. Retrying in 10 seconds...');
+    setTimeout(() => checkExistence(), 10000);
+  });
+};
+
+const register = () => {
+  return registerDevice()
+    .then(res => {
+      device = res;
+    });
 };
 
 function runPlaylist () {

@@ -3,6 +3,7 @@ const exec = require('child_process').exec;
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const reboot = require('../reboot');
 
 module.exports = (param, value) => {
   let configFile = fs.readFileSync(config.configPath, 'utf8');
@@ -34,6 +35,6 @@ module.exports = (param, value) => {
     console.log(stdout);
     console.log(stderr);
     if (!config.isDev)
-      exec('sudo reboot');
+      reboot();
   });
 };
