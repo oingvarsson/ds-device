@@ -1,17 +1,19 @@
 const config = require('./config');
 const fetch = require('node-fetch');
 const fs = require('fs');
+const heartbeat = require('./heartbeat');
 const path = require('path');
 const reboot = require('./reboot');
 const registerDevice = require('./registerDevice');
 const screenRotation = require('./screenRotation');
 const url = require('url');
 const {app, BrowserWindow} = require('electron');
-const heartbeat = require('./heartbeat');
 
 let win;
 let device;
 let retry = 0;
+let playlistTimer;
+let socket;
 
 const initializeApp = () => {
   let kiosk = !config.isDev;
@@ -47,16 +49,20 @@ const initializeApp = () => {
 };
 
 const checkExistence = () => {
+  console.log('Checking existence');
   retry++;
-  if (retry>3) {
+  if (retry>12) {
     console.log('Unable to register with service');
     if (!config.isDev)
       return reboot();
+    else
+      app.quit();
   }
   console.log(device);
   fetch(device.serviceUrl+'/devices/'+device.id)
   .then(res => res.json())
   .then(json => {
+    console.log(json);
     if (!json.id)
       return register().then(() => checkExistence());
     device = Object.assign({}, device, json);
@@ -65,9 +71,11 @@ const checkExistence = () => {
     if (device.rotation)
       screenRotation.set(device.rotation);
     heartbeat(device);
+    socket = setupSocket();
     runPlaylist();
   })
-  .catch(() => {
+  .catch(err => {
+    console.log(err);
     console.log('Unable to connect to service. Retrying in 10 seconds...');
     setTimeout(() => checkExistence(), 10000);
   });
@@ -76,53 +84,52 @@ const checkExistence = () => {
 const register = () => {
   return registerDevice()
     .then(res => {
+      console.log('Device registered');
       device = res;
     });
 };
 
-function runPlaylist () {
+const runPlaylist = () => {
 
+  let list = [];
 
-  let uris = ['https://www.youtube.com/tv#/watch/video/idle?v=Cimp-eTe3MU', 'http://ica.se', 'http://coop.se', 'http://willys.se', 'http://www.nyhetsbolaget.se'];
-
-  const changeUrl = (index) => {
-    win.loadURL(uris[index]);
-    index++;
-    if (index>uris.length-1)
-      index=0;
-    setTimeout(() => changeUrl(index), 30000);
+  const getPlaylist = () => {
+    return fetch(device.serviceUrl+'/playlists/'+device.playlist_id)
+    .then(res => res.json());
   };
 
-  changeUrl(0);
+  const changeUrl = (index) => {
+    clearTimeout(playlistTimer);
+    let item = list[index];
+    socket.emit('nowplaying', {device: device, asset: item.asset});
+    win.loadURL(item.asset.url);
+    index++;
+    if (index>list.length-1)
+      index=0;
+    playlistTimer = setTimeout(() => changeUrl(index), item.duration*1000);
+  };
 
-  // Open the DevTools.
-  //win.webContents.openDevTools()
+  getPlaylist()
+  .then(playlist => list=playlist.items)
+  .then(() => changeUrl(0));
 
-  // Emitted when the window is closed.
   win.on('closed', () => {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
     win = null;
   });
-}
+};
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.on('ready', initializeApp);
 
-// Quit when all windows are closed.
 app.on('window-all-closed', () => {
-  // On macOS it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
   app.quit();
 });
 
-app.on('activate', () => {
-  // On macOS it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (win === null) {
-    createWindow();
-  }
-});
+const setupSocket = () => {
+  const socket = require('socket.io-client').connect(device.serviceUrl);
+  socket.on('connect', function () {
+    // socket connected
+    //socket.emit('server custom event', { my: 'data' });
+    console.log('Connected to socket');
+  });
+  return socket;
+};
