@@ -88,12 +88,11 @@ const register = () => {
     });
 };
 
-const runPlaylist = () => {
-  console.log('Getting playlist');
-
+const runPlaylist = playlist => {
   let list = [];
 
   const getPlaylist = () => {
+    console.log('Getting playlist');
     return fetch(config.serviceUrl+'/playlists/'+device.playlist_id)
     .then(res => res.json());
   };
@@ -109,10 +108,16 @@ const runPlaylist = () => {
     playlistTimer = setTimeout(() => changeUrl(index), item.duration*1000);
   };
 
-  getPlaylist()
-  .then(playlist => list=playlist.items)
-  .then(() => changeUrl(0))
-  .catch(err => console.log(err));
+  if (playlist) {
+    console.log('Changing playlist');
+    list = playlist.items;
+    changeUrl(0);
+  } else {
+    getPlaylist()
+    .then(playlist => list=playlist.items)
+    .then(() => changeUrl(0))
+    .catch(err => console.log(err));
+  }
 
   win.on('closed', () => {
     win = null;
@@ -132,9 +137,10 @@ const setupSocket = () => {
     //socket.emit('server custom event', { my: 'data' });
     console.log('Connected to socket');
   });
-  socket.on('message', (err, data) => {
-    console.log(err);
+  socket.on('playlist', data => {
     console.log(data);
+    if (data.id===device.playlist_id)
+      runPlaylist(data);
   });
   return socket;
 };
