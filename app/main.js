@@ -58,8 +58,7 @@ const checkExistence = () => {
     else
       app.quit();
   }
-  console.log(device);
-  fetch(device.serviceUrl+'/devices/'+device.id)
+  fetch(config.serviceUrl+'/devices/'+device.id)
   .then(res => res.json())
   .then(json => {
     console.log(json);
@@ -90,11 +89,12 @@ const register = () => {
 };
 
 const runPlaylist = () => {
+  console.log('Getting playlist');
 
   let list = [];
 
   const getPlaylist = () => {
-    return fetch(device.serviceUrl+'/playlists/'+device.playlist_id)
+    return fetch(config.serviceUrl+'/playlists/'+device.playlist_id)
     .then(res => res.json());
   };
 
@@ -111,7 +111,8 @@ const runPlaylist = () => {
 
   getPlaylist()
   .then(playlist => list=playlist.items)
-  .then(() => changeUrl(0));
+  .then(() => changeUrl(0))
+  .catch(err => console.log(err));
 
   win.on('closed', () => {
     win = null;
@@ -125,11 +126,15 @@ app.on('window-all-closed', () => {
 });
 
 const setupSocket = () => {
-  const socket = require('socket.io-client').connect(device.serviceUrl);
-  socket.on('connect', function () {
+  const socket = require('socket.io-client').connect(config.serviceUrl);
+  socket.on('connect', () => {
     // socket connected
     //socket.emit('server custom event', { my: 'data' });
     console.log('Connected to socket');
+  });
+  socket.on('message', (err, data) => {
+    console.log(err);
+    console.log(data);
   });
   return socket;
 };

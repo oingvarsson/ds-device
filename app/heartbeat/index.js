@@ -8,7 +8,7 @@ let errorCount = 1;
 module.exports = device => {
   clearInterval(heartbeatInterval);
   heartbeatInterval = setInterval(() => {
-    fetch(device.serviceUrl+'/heartbeat/'+device.id, {method: 'PUT'})
+    fetch(config.serviceUrl+'/heartbeat/'+device.id, {method: 'PUT'})
     .then(res => {
       if (res.status!==200) {
         throw new Error('Unable to contact service');
