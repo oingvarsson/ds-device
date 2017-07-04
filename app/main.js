@@ -1,7 +1,6 @@
 const config = require('./config');
 const fetch = require('node-fetch');
 const fs = require('fs');
-const heartbeat = require('./heartbeat');
 const path = require('path');
 const reboot = require('./reboot');
 const registerDevice = require('./registerDevice');
@@ -30,6 +29,9 @@ const initializeApp = () => {
   }
 
   win = new BrowserWindow(windowOptions);
+  win.on('closed', () => {
+    win = null;
+  });
 
   win.loadURL(url.format({
     pathname: path.join(__dirname, 'index.html'),
@@ -61,7 +63,6 @@ const checkExistence = () => {
   fetch(config.serviceUrl+'/devices/'+device.id)
   .then(res => res.json())
   .then(json => {
-    console.log(json);
     if (!json.id)
       return register().then(() => checkExistence());
     device = Object.assign({}, device, json);
@@ -69,7 +70,6 @@ const checkExistence = () => {
 
     if (device.rotation)
       screenRotation.set(device.rotation);
-    heartbeat(device);
     socket = setupSocket();
     runPlaylist();
   })
@@ -89,6 +89,7 @@ const register = () => {
 };
 
 const runPlaylist = playlist => {
+  clearTimeout(playlistTimer);
   let list = [];
 
   const getPlaylist = () => {
@@ -111,17 +112,15 @@ const runPlaylist = playlist => {
   if (playlist) {
     console.log('Changing playlist');
     list = playlist.items;
-    changeUrl(0);
+    list.length>0 ? changeUrl(0) : emptyPlaylist();
   } else {
     getPlaylist()
-    .then(playlist => list=playlist.items)
-    .then(() => changeUrl(0))
+    .then(playlist => {
+      list=playlist.items;
+      list.length>0 ? changeUrl(0) : emptyPlaylist();
+    })
     .catch(err => console.log(err));
   }
-
-  win.on('closed', () => {
-    win = null;
-  });
 };
 
 app.on('ready', initializeApp);
@@ -130,17 +129,54 @@ app.on('window-all-closed', () => {
   app.quit();
 });
 
+const emptyPlaylist = () => {
+  clearTimeout(playlistTimer);
+  win.loadURL(url.format({
+    pathname: path.join(__dirname, 'empty.html'),
+    protocol: 'file:',
+    slashes: true
+  }));
+};
+
+let heartbeatInterval;
 const setupSocket = () => {
   const socket = require('socket.io-client').connect(config.serviceUrl);
+
   socket.on('connect', () => {
+    clearInterval(heartbeatInterval);
     // socket connected
-    //socket.emit('server custom event', { my: 'data' });
+    socket.emit('heartbeat', { id: device.id });
+    heartbeatInterval = setInterval(() => {
+      socket.emit('heartbeat', { id: device.id });
+    }, 10000);
+
     console.log('Connected to socket');
   });
+
+  socket.on('device', data => {
+    console.log('Got device update');
+    if (data.id === device.id && data.playlist_id !== device.playlist_id) {
+      device.playlist_id = data.playlist_id;
+      runPlaylist();
+    }
+  });
+
+  socket.on('disconnect', () => {
+    //TODO: check existence make sure not to create duplicate sockets
+    clearInterval(heartbeatInterval);
+    console.log('Disconnected from service');
+  });
+
   socket.on('playlist', data => {
-    console.log(data);
-    if (data.id===device.playlist_id)
+    if (data.device_id===device.id)
       runPlaylist(data);
   });
+
+  socket.on('reboot', data => {
+    if (data.id===device.id)
+      !config.isDev ? reboot() : app.quit();
+  });
+
   return socket;
+
 };
