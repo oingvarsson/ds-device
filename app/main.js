@@ -13,6 +13,7 @@ let device;
 let retry = 0;
 let playlistTimer;
 let socket;
+let list;
 
 const initializeApp = () => {
   let kiosk = !config.isDev;
@@ -87,7 +88,7 @@ const register = () => {
 
 const runPlaylist = playlist => {
   clearTimeout(playlistTimer);
-  let list = [];
+  list = [];
 
   const getPlaylist = () => {
     console.log('Getting playlist');
@@ -135,6 +136,12 @@ const emptyPlaylist = () => {
   }));
 };
 
+let startTimer;
+const runPlaylistWithDelay = () => {
+  clearTimeout(startTimer);
+  startTimer = setTimeout(runPlaylist, 2000);
+};
+
 let heartbeatInterval;
 const setupSocket = () => {
   const socket = require('socket.io-client').connect(config.serviceUrl);
@@ -150,27 +157,34 @@ const setupSocket = () => {
     console.log('Connected to socket');
   });
 
-  socket.on('device', data => {
-    console.log('Got device update');
-    if (data.id === device.id) {
-      if (data.playlist_id !== device.playlist_id) {
-        device.playlist_id = data.playlist_id;
-        runPlaylist();
-      }
-      if (data.restart)
-        reboot();
-    }
-  });
-
   socket.on('disconnect', () => {
     //TODO: check existence make sure not to create duplicate sockets
     clearInterval(heartbeatInterval);
     console.log('Disconnected from service');
   });
 
+  socket.on('asset', data => {
+    if (list.find(li => li.asset.id==data.id)) runPlaylistWithDelay();
+  });
+
+  socket.on('device', data => {
+    if (data.id === device.id) {
+      if (data.playlist_id !== device.playlist_id) {
+        device.playlist_id = data.playlist_id;
+        runPlaylistWithDelay();
+      }
+      if (data.restart)
+        reboot();
+    }
+  });
+
+  socket.on('playlist_item', data => {
+    if (list.find(li => li.id==data.id)) runPlaylistWithDelay();
+  });
+
   socket.on('playlist', data => {
-    if (data.device_id===device.id)
-      runPlaylist(data);
+    if (data.id===device.playlist_id)
+      runPlaylistWithDelay();
   });
 
   return socket;
