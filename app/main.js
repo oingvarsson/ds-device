@@ -55,10 +55,7 @@ const checkExistence = () => {
   retry++;
   if (retry>12) {
     console.log('Unable to register with service');
-    if (!config.isDev)
-      return reboot();
-    else
-      app.quit();
+    return reboot();
   }
   fetch(config.serviceUrl+'/devices/'+device.id)
   .then(res => res.json())
@@ -94,7 +91,7 @@ const runPlaylist = playlist => {
 
   const getPlaylist = () => {
     console.log('Getting playlist');
-    return fetch(config.serviceUrl+'/playlists/'+device.playlist_id)
+    return fetch(config.serviceUrl+'/playlist/'+device.playlist_id)
     .then(res => res.json());
   };
 
@@ -155,9 +152,13 @@ const setupSocket = () => {
 
   socket.on('device', data => {
     console.log('Got device update');
-    if (data.id === device.id && data.playlist_id !== device.playlist_id) {
-      device.playlist_id = data.playlist_id;
-      runPlaylist();
+    if (data.id === device.id) {
+      if (data.playlist_id !== device.playlist_id) {
+        device.playlist_id = data.playlist_id;
+        runPlaylist();
+      }
+      if (data.restart)
+        reboot();
     }
   });
 
@@ -170,11 +171,6 @@ const setupSocket = () => {
   socket.on('playlist', data => {
     if (data.device_id===device.id)
       runPlaylist(data);
-  });
-
-  socket.on('reboot', data => {
-    if (data.id===device.id)
-      !config.isDev ? reboot() : app.quit();
   });
 
   return socket;
