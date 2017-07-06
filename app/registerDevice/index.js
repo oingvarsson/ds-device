@@ -13,11 +13,9 @@ const saveDevice = device => {
 };
 
 module.exports = () => {
-  let configFile = fs.readFileSync(config.dsConfigPath, 'utf8');
-  let serviceUrl = JSON.parse(configFile).serviceUrl;
   console.log('Registering device');
-  return fetch(serviceUrl+'/devices', {method: 'POST', body: JSON.stringify({})})
+  return fetch(config.serviceUrl+'/devices', {method: 'POST', body: JSON.stringify({})})
   .then(res => res.json())
-  .then(json => saveDevice({id: json.id, serviceUrl: serviceUrl}))
+  .then(json => saveDevice({id: json.id}))
   .catch(err => console.log(err));
 };

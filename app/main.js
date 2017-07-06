@@ -115,7 +115,7 @@ const runPlaylist = playlist => {
     getPlaylist()
     .then(playlist => {
       list=playlist.items;
-      list.length>0 ? changeUrl(0) : emptyPlaylist();
+      list && list.length>0 ? changeUrl(0) : emptyPlaylist();
     })
     .catch(err => console.log(err));
   }
