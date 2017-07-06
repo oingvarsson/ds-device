@@ -142,8 +142,8 @@ const runPlaylistWithDelay = () => {
   startTimer = setTimeout(runPlaylist, 2000);
 };
 
-let heartbeatInterval;
 const setupSocket = () => {
+  let heartbeatInterval;
   const socket = require('socket.io-client').connect(config.serviceUrl);
 
   socket.on('connect', () => {
