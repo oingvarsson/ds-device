@@ -74,7 +74,7 @@ const checkExistence = () => {
   .catch(err => {
     console.log(err);
     console.log('Unable to connect to service. Retrying in 10 seconds...');
-    setTimeout(() => checkExistence(), 10000);
+    setTimeout(checkExistence, 10000);
   });
 };
 
@@ -144,10 +144,13 @@ const runPlaylistWithDelay = () => {
 
 const setupSocket = () => {
   let heartbeatInterval;
+  let rebootTimer;
+
   const socket = require('socket.io-client').connect(config.serviceUrl);
 
   socket.on('connect', () => {
     clearInterval(heartbeatInterval);
+    clearTimeout(rebootTimer);
     // socket connected
     socket.emit('heartbeat', { id: device.id });
     heartbeatInterval = setInterval(() => {
@@ -158,8 +161,9 @@ const setupSocket = () => {
   });
 
   socket.on('disconnect', () => {
-    //TODO: check existence make sure not to create duplicate sockets
+    clearTimeout(rebootTimer);
     clearInterval(heartbeatInterval);
+    rebootTimer = setTimeout(reboot, 60000);
     console.log('Disconnected from service');
   });
 
