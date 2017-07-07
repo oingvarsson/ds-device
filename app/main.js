@@ -167,6 +167,20 @@ const setupSocket = () => {
     if (list.find(li => li.asset.id==data.id)) runPlaylistWithDelay();
   });
 
+  socket.on('deleted', data => {
+    const {entity, id} = data;
+    if (entity=='device' && device.id==id)
+      reboot();
+    if (entity=='playlist' && device.playlist_id==id) {
+      device.playlist_id=null;
+      runPlaylistWithDelay();
+    }
+    if (entity=='playlist_item' && list.find(li => li.id==id))
+      runPlaylistWithDelay();
+    if (entity=='asset' && list.find(li => li.asset.id==id))
+      runPlaylistWithDelay();
+  });
+
   socket.on('device', data => {
     if (data.id === device.id) {
       if (data.playlist_id !== device.playlist_id) {
