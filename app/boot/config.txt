@@ -40,4 +40,4 @@
 # Additional overlays and parameters are documented /boot/overlays/README
 # Enable audio (loads snd_bcm2835)
 dtparam=audio=on
-display_rotate=0
+display_rotate=2

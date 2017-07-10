@@ -4,6 +4,7 @@ const os = require('os');
 const updateConfig = require('../updateConfig');
 
 const set = newRotation => {
+  console.log('Setting rotation');
   get()
   .then(rotation => parseInt(rotation)!==parseInt(newRotation))
   .then(shouldChange => shouldChange ? updateConfig('display_rotate=', newRotation) : false);
@@ -28,5 +29,3 @@ module.exports={
   set: set,
   get: get
 };
-
-set(0);

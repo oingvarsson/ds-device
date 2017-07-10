@@ -1,6 +1,7 @@
 const config = require('./config');
 const fetch = require('node-fetch');
 const fs = require('fs');
+const ip = require('./ip');
 const path = require('path');
 const reboot = require('./reboot');
 const registerDevice = require('./registerDevice');
@@ -65,7 +66,6 @@ const checkExistence = () => {
       return register().then(() => checkExistence());
     device = Object.assign({}, device, json);
     console.log(device);
-
     if (device.rotation)
       screenRotation.set(device.rotation);
     socket = setupSocket();
@@ -152,9 +152,9 @@ const setupSocket = () => {
     clearInterval(heartbeatInterval);
     clearTimeout(rebootTimer);
     // socket connected
-    socket.emit('heartbeat', { id: device.id });
+    socket.emit('heartbeat', { id: device.id, ip: ip() });
     heartbeatInterval = setInterval(() => {
-      socket.emit('heartbeat', { id: device.id });
+      socket.emit('heartbeat', { id: device.id, ip: ip() });
     }, 10000);
 
     console.log('Connected to socket');
@@ -190,6 +190,9 @@ const setupSocket = () => {
       if (data.playlist_id !== device.playlist_id) {
         device.playlist_id = data.playlist_id;
         runPlaylistWithDelay();
+      }
+      if (data.rotation && data.rotation!=device.rotation) {
+        screenRotation.set(data.rotation);
       }
       if (data.restart)
         reboot();
