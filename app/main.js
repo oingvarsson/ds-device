@@ -74,7 +74,7 @@ const checkExistence = () => {
   .catch(err => {
     console.log(err);
     console.log('Unable to connect to service. Retrying in 10 seconds...');
-    setTimeout(checkExistence, 10000);
+    setTimeout(() => checkExistence(), 10000);
   });
 };
 
