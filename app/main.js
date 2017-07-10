@@ -191,7 +191,7 @@ const setupSocket = () => {
         device.playlist_id = data.playlist_id;
         runPlaylistWithDelay();
       }
-      if (data.rotation && data.rotation!=device.rotation) {
+      if (data.rotation!=device.rotation) {
         screenRotation.set(data.rotation);
       }
       if (data.restart)
