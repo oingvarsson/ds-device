@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "download": "^6.2.5",
+    "github": "^9.2.0",
     "moment": "^2.18.1",
     "node-fetch": "^1.6.3",
     "socket.io-client": "^2.0.1"

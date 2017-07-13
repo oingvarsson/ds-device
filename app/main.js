@@ -8,6 +8,11 @@ const registerDevice = require('./registerDevice');
 const screenRotation = require('./screenRotation');
 const url = require('url');
 const {app, BrowserWindow} = require('electron');
+const versionCheck = require('./versionCheck');
+
+versionCheck.update();
+
+console.log(process.version);
 
 let win;
 let device;
@@ -65,6 +70,7 @@ const checkExistence = () => {
     if (!json.id)
       return register().then(() => checkExistence());
     device = Object.assign({}, device, json);
+    //device.version = versionCheck.version();
     console.log(device);
     if (device.rotation)
       screenRotation.set(device.rotation);
