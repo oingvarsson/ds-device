@@ -70,7 +70,7 @@ const checkExistence = () => {
     if (!json.id)
       return register().then(() => checkExistence());
     device = Object.assign({}, device, json);
-    //device.version = versionCheck.version();
+    device.version = versionCheck.version();
     console.log(device);
     if (device.rotation)
       screenRotation.set(device.rotation);
@@ -158,9 +158,9 @@ const setupSocket = () => {
     clearInterval(heartbeatInterval);
     clearTimeout(rebootTimer);
     // socket connected
-    socket.emit('heartbeat', { id: device.id, ip: ip() });
+    socket.emit('heartbeat', { id: device.id, ip: ip(), version: device.version });
     heartbeatInterval = setInterval(() => {
-      socket.emit('heartbeat', { id: device.id, ip: ip() });
+      socket.emit('heartbeat', { id: device.id, ip: ip(), version: device.version });
     }, 10000);
 
     console.log('Connected to socket');
