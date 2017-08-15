@@ -15,7 +15,7 @@ const saveDevice = device => {
 
 module.exports = () => {
   console.log('Registering device');
-  return fetch(config.serviceUrl+'/devices', {method: 'POST', body: JSON.stringify({})})
+  return fetch(config.serviceUrl+'/devices', {method: 'POST', body: JSON.stringify({}), headers: {'X-API-Token': config.apiToken}})
   .then(res => res.json())
   .then(json => saveDevice({id: json.id}))
   .catch(err => console.log(err));

@@ -64,7 +64,7 @@ const checkExistence = () => {
     console.log('Unable to register with service');
     return reboot();
   }
-  fetch(config.serviceUrl+'/devices/'+device.id)
+  fetch(config.serviceUrl+'/devices/'+device.id, {headers: {'X-API-Token': config.apiToken}})
   .then(res => res.json())
   .then(json => {
     if (!json.id)
@@ -98,7 +98,7 @@ const runPlaylist = playlist => {
 
   const getPlaylist = () => {
     console.log('Getting playlist');
-    return fetch(config.serviceUrl+'/playlist/'+device.playlist_id)
+    return fetch(config.serviceUrl+'/playlist/'+device.playlist_id, {headers: {'X-API-Token': config.apiToken}})
     .then(res => res.json());
   };
 

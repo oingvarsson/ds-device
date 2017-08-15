@@ -11,7 +11,7 @@ let dsConfig = fs.readFileSync(configFile, 'UTF-8');
 dsConfig = JSON.parse(dsConfig);
 let env = dsConfig.env;
 
-module.exports = {
+config = {
   dev: {
     configPath: './boot/config.txt',
     dsConfigPath: './boot/ds_config.json',
@@ -34,3 +34,7 @@ module.exports = {
     serviceUrl: dsConfig.serviceUrl
   }
 }[env];
+
+config.apiToken = process.env.API_TOKEN || '123';
+
+module.exports = config;
