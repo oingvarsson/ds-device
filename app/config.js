@@ -35,6 +35,6 @@ config = {
   }
 }[env];
 
-config.apiToken = process.env.API_TOKEN || '123';
+config.apiToken = dsConfig.env!=='dev' ? dsConfig.apiToken : '123';
 
 module.exports = config;
