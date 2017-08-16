@@ -19,7 +19,7 @@ let device;
 let retry = 0;
 let playlistTimer;
 let socket;
-let list;
+let list=[];
 
 const initializeApp = () => {
   let kiosk = !config.isDev;
@@ -65,23 +65,23 @@ const checkExistence = () => {
     return reboot();
   }
   fetch(config.serviceUrl+'/devices/'+device.id, {headers: {'X-API-Token': config.apiToken}})
-  .then(res => res.json())
-  .then(json => {
-    if (!json.id)
-      return register().then(() => checkExistence());
-    device = Object.assign({}, device, json);
-    device.version = versionCheck.version();
-    console.log(device);
-    if (device.rotation)
-      screenRotation.set(device.rotation);
-    socket = setupSocket();
-    runPlaylist();
-  })
-  .catch(err => {
-    console.log(err);
-    console.log('Unable to connect to service. Retrying in 10 seconds...');
-    setTimeout(() => checkExistence(), 10000);
-  });
+    .then(res => res.json())
+    .then(json => {
+      if (!json.id)
+        return register().then(() => checkExistence());
+      device = Object.assign({}, device, json);
+      device.version = versionCheck.version();
+      console.log(device);
+      if (device.rotation)
+        screenRotation.set(device.rotation);
+      socket = setupSocket();
+      runPlaylist();
+    })
+    .catch(err => {
+      console.log(err);
+      console.log('Unable to connect to service. Retrying in 10 seconds...');
+      setTimeout(() => checkExistence(), 10000);
+    });
 };
 
 const register = () => {
@@ -98,8 +98,9 @@ const runPlaylist = playlist => {
 
   const getPlaylist = () => {
     console.log('Getting playlist');
+    if (!device.playlist_id) return new Promise(res => res([]));
     return fetch(config.serviceUrl+'/playlist/'+device.playlist_id, {headers: {'X-API-Token': config.apiToken}})
-    .then(res => res.json());
+      .then(res => res.json());
   };
 
   const changeUrl = (index) => {
@@ -119,11 +120,11 @@ const runPlaylist = playlist => {
     list.length>0 ? changeUrl(0) : emptyPlaylist();
   } else {
     getPlaylist()
-    .then(playlist => {
-      list=playlist.items;
-      list && list.length>0 ? changeUrl(0) : emptyPlaylist();
-    })
-    .catch(err => console.log(err));
+      .then(res => {
+        list = res.items || [];
+        list && list.length>0 ? changeUrl(0) : emptyPlaylist();
+      })
+      .catch(err => console.log(err));
   }
 };
 
