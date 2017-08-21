@@ -107,7 +107,6 @@ const runPlaylist = playlist => {
     clearTimeout(playlistTimer);
     let item = list[index];
     socket.emit('nowplaying', {device: device, asset: item.asset});
-    console.log(item.asset.type);
     if (item.asset.type==='url')
       win.loadURL(item.asset.url);
     else
@@ -215,7 +214,8 @@ const setupSocket = () => {
   });
 
   socket.on('playlist_item', data => {
-    if (list.find(li => li.id==data.id)) runPlaylistWithDelay();
+    console.log(data);
+    if (data.playlist_id==device.playlist_id) runPlaylistWithDelay();
   });
 
   socket.on('playlist', data => {
