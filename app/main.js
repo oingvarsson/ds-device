@@ -31,8 +31,8 @@ const initializeApp = () => {
     }
   };
   if (config.isDev) {
-    windowOptions.height = 600;
-    windowOptions.width = 900;
+    windowOptions.height = 1080;
+    windowOptions.width = 1920;
   }
 
   win = new BrowserWindow(windowOptions);
@@ -107,7 +107,15 @@ const runPlaylist = playlist => {
     clearTimeout(playlistTimer);
     let item = list[index];
     socket.emit('nowplaying', {device: device, asset: item.asset});
-    win.loadURL(item.asset.url);
+    console.log(item.asset.type);
+    if (item.asset.type==='url')
+      win.loadURL(item.asset.url);
+    else
+      fetch(config.serviceUrl+'/images/'+item.asset.id+'?url=true', {headers: {'X-API-Token': config.apiToken}})
+        .then(res => res.json())
+        .then(image => win.loadURL(image.url))
+        .catch(err => console.log(err));
+
     index++;
     if (index>list.length-1)
       index=0;
