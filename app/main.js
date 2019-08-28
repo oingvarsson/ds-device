@@ -207,6 +207,7 @@ const setupSocket = () => {
       }
       if (data.rotation!=device.rotation) {
         screenRotation.set(data.rotation);
+        device.rotation=data.rotation;
       }
       if (data.restart)
         reboot();
