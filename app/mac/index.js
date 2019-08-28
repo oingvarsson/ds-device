@@ -1,6 +1,6 @@
 const os = require('os');
 
-const macAdress = () => { //module.exports
+module.exports = () => {
   const ifaces = os.networkInterfaces();
   let macs = [];
   for (let iface in ifaces) {
@@ -13,5 +13,3 @@ const macAdress = () => { //module.exports
   const mac = macs.map(ip => ip.mac).join(' / ');
   return mac;
 };
-
-console.log(macAdress());

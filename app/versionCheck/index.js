@@ -24,11 +24,11 @@ const getServerVersion = () => {
     path: 'app/package.json',
     ref: 'master'
   })
-  .then(res => {
-    const repoPackageJson = Buffer.from(res.data.content, 'base64').toString('utf8');
-    const repoVersion = JSON.parse(repoPackageJson).version;
-    return repoVersion;
-  });
+    .then(res => {
+      const repoPackageJson = Buffer.from(res.data.content, 'base64').toString('utf8');
+      const repoVersion = JSON.parse(repoPackageJson).version;
+      return repoVersion;
+    });
 };
 
 // compare
@@ -50,10 +50,10 @@ const updateApp = () => {
     archive_format: 'zipball',
     ref: 'master'
   })
-  .then(res => {console.log(res.meta.location); return res;})
-  .then(res => download(res.meta.location, '/tmp', {filename: 'ds-client-update.zip', extract: true}))
-  .then(res => npmInstall('/tmp/'+res[0].path+'/app'))
-  .then(dir => moveApp(dir));
+    .then(res => {console.log(res.meta.location); return res;})
+    .then(res => download(res.meta.location, '/tmp', {filename: 'ds-client-update.zip', extract: true}))
+    .then(res => npmInstall('/tmp/'+res[0].path+'/app'))
+    .then(dir => moveApp(dir));
 };
 
 const runCommand = command => {
@@ -69,7 +69,7 @@ const runCommand = command => {
 
 const npmInstall = dir => {
   return runCommand(`cd ${dir}; npm install;`)
-  .then(() => dir);
+    .then(() => dir);
 };
 
 const moveApp = dir => {
@@ -80,8 +80,8 @@ const moveApp = dir => {
 
 const update = () => {
   checkForUpdate()
-  .then(res => console.log(res))
-  .catch(err => console.error(err));
+    .then(res => console.log(res))
+    .catch(err => console.error(err));
 };
 
 module.exports = {
