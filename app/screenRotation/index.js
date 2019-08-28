@@ -7,43 +7,43 @@ const parseXrandr = input => {
   const parts = theRow.split(' (')[0].split(' ');
   const thePart = parts[parts.length-1];
   switch (thePart) {
-    case 'left':
-      return 1;
-    case 'inverted':
-      return 2;
-    case 'right':
-      return 3;
-    default:
-      return 0;
+  case 'left':
+    return 1;
+  case 'inverted':
+    return 2;
+  case 'right':
+    return 3;
+  default:
+    return 0;
   }
-}
+};
 
 const get = () => {
   return new Promise((resolve, reject) => {
-    exec('xrandr', (err, stdout, stderr) => {
+    exec('xrandr', (err, stdout) => {
       if (err)
         reject(err);
       resolve(parseXrandr(stdout));
     });
-  })
+  });
 };
 
 const rotate = rotation => {
   console.log(`Setting rotation to ${rotation}`);
-  exec(`xrandr -o ${rotation}`, (err, stdout, stderr) => {
+  exec(`xrandr -o ${rotation}`, (err, stdout) => {
     if (err) {
       console.log('Failed to set rotation');
       return;
     }
     console.log(stdout);
-  })
+  });
 };
 
 const set = newRotation => {
   newRotation = parseInt(newRotation);
   get()
-  .then(rotation => rotation!==newRotation)
-  .then(shouldChange => shouldChange ? rotate(newRotation) : false);
+    .then(rotation => rotation!==newRotation)
+    .then(shouldChange => shouldChange ? rotate(newRotation) : false);
 };
 
 module.exports={
