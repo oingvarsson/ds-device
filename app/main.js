@@ -2,6 +2,7 @@ const config = require('./config');
 const fetch = require('node-fetch');
 const fs = require('fs');
 const ip = require('./ip');
+const mac = require('./mac');
 const path = require('path');
 const reboot = require('./reboot');
 const registerDevice = require('./registerDevice');
@@ -166,9 +167,9 @@ const setupSocket = () => {
     clearInterval(heartbeatInterval);
     clearTimeout(rebootTimer);
     // socket connected
-    socket.emit('heartbeat', { id: device.id, ip: ip(), version: device.version });
+    socket.emit('heartbeat', { id: device.id, ip: ip(), mac: mac(), version: device.version });
     heartbeatInterval = setInterval(() => {
-      socket.emit('heartbeat', { id: device.id, ip: ip(), version: device.version });
+      socket.emit('heartbeat', { id: device.id, ip: ip(), mac: mac(), version: device.version });
     }, 10000);
 
     console.log('Connected to socket');
