@@ -11,7 +11,7 @@ let dsConfig = fs.readFileSync(configFile, 'UTF-8');
 dsConfig = JSON.parse(dsConfig);
 let env = dsConfig.env;
 
-config = {
+let config = {
   dev: {
     configPath: './boot/config.txt',
     dsConfigPath: './boot/ds_config.json',
