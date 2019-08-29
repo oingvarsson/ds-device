@@ -68,7 +68,7 @@ const runCommand = command => {
 };
 
 const npmInstall = dir => {
-  return runCommand(`cd ${dir}; npm install;`)
+  return runCommand(`cd ${dir}; npm install --only=prod;`)
     .then(() => dir);
 };
 
